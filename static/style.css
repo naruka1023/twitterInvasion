@@ -14,6 +14,7 @@
 .udContainer{
     width:45vw;
     margin:auto;
+    overflow:hidden;
     text-align:center
 }
 .udContainer tr{

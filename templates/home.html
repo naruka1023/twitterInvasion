@@ -2,6 +2,7 @@
     <head>
         <title>Twitter Invasion</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     </head>
     <body style='background-color:lightcoral'>
@@ -9,7 +10,7 @@
         <div class='navigation'>
             <div><a href='{{url_for("messages", id=1)}}'>Messages</a></div>
             <div class='active'><a href='{{url_for("tweetInvasion")}}'>Tweet Invasion</a></div>
-            <div><a href='{{url_for("audiences")}}'>Audiences</a></div>
+            <div><a href='{{url_for("audiences")}}'>Potential Audience</a></div>
         </div>
         
         <div style='background-color:lightskyblue; border:1px solid; border-radius:100px'>

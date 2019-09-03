@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, g
 import tweepy as tw
 import sqlite3 as sql
 import json
@@ -37,10 +37,41 @@ def messages(id=None):
         rows = cur.fetchall()
         cur.execute('select title, cID from content')
         content = cur.fetchall()
-        cur.execute('select title from content where cID=%s'%id)
-        title = cur.fetchone()
+        if len(rows) == 0:
+            cur.execute('select title from content where cID = %s'% id)
+            title = cur.fetchone()
+            title = title['title']
+        else:
+            title = rows[0]
     return render_template('messages.html', rows=rows, content=content, id=id, title=title)
     con.close()
+
+@app.route('/newMessage<id>', methods = ['POST'])
+def newMessage(id=None):
+    message = request.form
+    message = message["message"]
+
+    con = sql.connect("TWIdatabase.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    cur.execute("INSERT INTO messages (messages, cID) VALUES (?,?)",(message, id))
+    con.commit()
+    con.close()
+    return redirect(url_for('messages', id=id))
+
+@app.route('/newContent', methods = ['POST'])
+def newContent():
+    content = request.form
+    link = content["link"]
+    title = content["title"]
+
+    con = sql.connect("TWIdatabase.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    cur.execute("INSERT INTO content (link, title) VALUES (?,?)",(link, title))
+    con.commit()
+    con.close()
+    return redirect(url_for('messages', id=1))
 
 @app.route('/audiences')
 def audiences():
