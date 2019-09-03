@@ -1,0 +1,25 @@
+<!doctype html>
+    <head>
+        <title>Twitter Invasion</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    </head>
+    <body style='background-color:lightcoral'>
+        <h2 style='text-align:center; font-family:Times New Roman'>Tweet Invasion</h2>
+        <div class='navigation'>
+            <div><a href='{{url_for("messages", id=1)}}'>Messages</a></div>
+            <div class='active'><a href='{{url_for("tweetInvasion")}}'>Tweet Invasion</a></div>
+            <div><a href='{{url_for("audiences")}}'>Audiences</a></div>
+        </div>
+        
+        <div style='background-color:lightskyblue; border:1px solid; border-radius:100px'>
+            {% block content %}{% endblock %}
+        </div>
+        {% for tweet in tweets %}
+          <div class="flash">{{ tweet.text }}</div>
+        {% endfor %}
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    </body>
+</html>

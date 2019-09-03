@@ -1,0 +1,29 @@
+{% extends 'home.html' %}
+
+{% block content %}
+    <div class='mainObject'>
+        <div class='udContainer'>
+            <div style='text-align:center; padding:20px 0'><b>MESSAGE</b></div>
+            <table>
+                <thead>
+                    <th style='text-align:center'>
+                        <div class="dropdown" style='width:fit-content; margin:10px auto'>
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{title.title}}
+                            <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                {% for c in content %}
+                                <li><a href='{{url_for("messages", id=c.cID)}}'>{{c.title}}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </th>
+                </thead>
+                {% for row in rows %}
+                    <tr>
+                        <td>{{row['messages']}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
