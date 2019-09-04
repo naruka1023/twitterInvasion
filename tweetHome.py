@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from flask import Flask, render_template, redirect, url_for, request, session
-=======
-from flask import Flask, render_template, redirect, url_for, request, g
->>>>>>> 64e0a988ad3535fa0ff11838bc88ef46c090b990
 import tweepy as tw
 import sqlite3 as sql
 import requests
@@ -83,7 +79,6 @@ def newContent():
     con.close()
     return redirect(url_for('messages', id=1))
 
-<<<<<<< HEAD
 def authorizeSpotify():
     response = requests.post('https://accounts.spotify.com/api/token',
         headers={'Content-Type': 'application/x-www-form-urlencoded'},
@@ -108,8 +103,6 @@ def getAudienceDetails(an=None):
 
     return json.dumps(json_data)
 
-=======
->>>>>>> 64e0a988ad3535fa0ff11838bc88ef46c090b990
 @app.route('/audiences')
 def audiences():
     if 'accessToken' not in session:
