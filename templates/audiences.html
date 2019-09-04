@@ -2,6 +2,49 @@
 
 {% block content %}
     <div class='mainObject'>
-            audiences
+            Potential Audience
     </div>
-{% endblock %}
+    <div class='udContainer'>
+        {% if audience is string %}
+            <div style='padding-bottom: 30px; width: fit-content; font-size: 1.5em; margin: auto;'>No audiences found. Add one!</div>
+        {% else %}
+            <table style='width:100%; margin-bottom:20px'>
+                <thead>
+                    <th style='text-align:center'>
+                        <div >Name</div>
+                    </th>
+                    <th style='text-align:center'>
+                        <div >Total Followers</div>
+                    </th>
+                </thead>
+                {% for row in audience %}
+                    <tr>
+                        <td>{{row['name']}}</td>
+                        <td>{{row['fl']}} <button data-toggle="modal" data-target="#audienceDetails" data-id='{{row["name"]}}' style='float:right'>Details</button></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+
+    <div id="audienceDetails" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Audience Details</h4>
+                    </div>
+                    <div class="modal-body udContainer" style='width:fit-content; overflow:hidden'>
+                        <table style='margin:auto'>
+                            <thead>
+                                <th style='padding:10px'>Artists</th>
+                                <th style='padding:10px'>Genres</th>
+                                <th style='padding:10px'>Followers</th>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% endblock %}
