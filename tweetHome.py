@@ -112,7 +112,7 @@ def searchsimiliarbands(name=None):
         for x in response['genres']:
             genres += x + ','
         genres = genres[0:-2]
-        rawData = '{"name":"' + response['name'] + '", "genres": "' + genres + '"}'
+        rawData = '{"index":"0", "name":"' + response['name'] + '", "genres": "' + genres + '", "id": "' + response['id']  +'"}'
         bandInQuestion = json.loads(rawData)
         filteredArtists = []
         filteredArtists.append(bandInQuestion)
@@ -122,8 +122,9 @@ def searchsimiliarbands(name=None):
         relatedUrl = 'https://api.spotify.com/v1/artists/' + artID + '/related-artists'
         relatedResponse = requests.get(relatedUrl, params={'access_token': session['accessToken']})
         relatedArtists = json.loads(relatedResponse.content)['artists']
-        listOfArtists2 = []
-        listOfArtists2.append((bandInQuestion['name'].replace(" ", '')))
+        # listOfArtists2 = []
+        # listOfArtists2.append((bandInQuestion['name'].replace(" ", '')))
+        i = 1
         for artist in relatedArtists:
             relatedGenres = ''
             for x in artist['genres']:
@@ -131,34 +132,37 @@ def searchsimiliarbands(name=None):
 
             fa = {
                 "name" : artist['name'],
-                "genres" : relatedGenres
+                "genres" : relatedGenres,
+                "id" : artist['id'],
+                'index' : i
             }
+            i += 1
             filteredArtists.append(fa)
-            listOfArtists2.append(artist['name'].replace(" ", ""))
+            # listOfArtists2.append(artist['name'].replace(" ", ""))
 
-        listOfArtists = ','.join(listOfArtists2)
-        print(listOfArtists)
-        api = tw.Api(consumer_key=consumer_key,
-                      consumer_secret=consumer_secret,
-                      access_token_key=access_token,
-                      access_token_secret=access_token_secret)
-        results = api.UsersLookup(screen_name=listOfArtists)
-        followers = []
-        for result in results:
-            temp = {}
-            temp['name'] = result.name
-            temp['screen_name'] = result.screen_name
-            temp['id'] = result.id
-            temp['verified'] = result.verified
-            temp['followers'] = result.followers_count
-            followers.append(temp)
-        followersIndex = 0
-        j = 0
-        everything = followers
-        everything.append(listOfArtists2)
+        # listOfArtists = ','.join(listOfArtists2)
+        # print(listOfArtists)
+        # api = tw.Api(consumer_key=consumer_key,
+        #               consumer_secret=consumer_secret,
+        #               access_token_key=access_token,
+        #               access_token_secret=access_token_secret)
+        # results = api.UsersLookup(screen_name=listOfArtists)
+        # followers = []
+        # for result in results:
+        #     temp = {}
+        #     temp['name'] = result.name
+        #     temp['screen_name'] = result.screen_name
+        #     temp['id'] = result.id
+        #     temp['verified'] = result.verified
+        #     temp['followers'] = result.followers_count
+        #     followers.append(temp)
+        # followersIndex = 0
+        # j = 0
+        # everything = followers
+        # everything.append(listOfArtists2)
     else:
         return 'watchmewhipwatchmenene'
-    return json.dumps(everything)
+    return json.dumps(filteredArtists)
 
 @app.route('/audiences')
 def audiences():

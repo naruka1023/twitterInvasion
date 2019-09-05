@@ -18,10 +18,10 @@
                     </th>
                 </thead>
                 {% for row in audience %}
-                    <tr>
-                        <td>{{row['name']}}</td>
-                        <td>{{row['fl']}} <button data-toggle="modal" data-target="#audienceDetails" data-id='{{row["name"]}}' style='float:right'>Details</button></td>
-                    </tr>
+                <tr>
+                    <td>{{row['name']}}</td>
+                    <td>{{row['fl']}} <button data-toggle="modal" data-target="#audienceDetails" data-id='{{row["name"]}}' style='float:right'>Details</button></td>
+                </tr>
                 {% endfor %}
             </table>
             <div style='width:fit-content; float:right; margin-bottom:15px'>
@@ -50,14 +50,16 @@
                                 <button id='searchBands'><i class='fa fa-search'></i></button>
                             </div>
                         </div>
-                    </div>               
-                    <table id='relatedTable' style='margin:auto; display:none'>
-                        <thead>
-                            <th style='padding:10px'>Artist</th>
-                            <th style='padding:10px'>Genres</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    </div>  
+                    <div style='overflow:hidden'>
+                        <table id='relatedTable' style='margin:auto; display:none'>
+                            <thead>
+                                <th style='padding:10px'>Artist</th>
+                                <th style='padding:10px'>Genres</th>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>             
                 </div>
             </div>
         </div>
