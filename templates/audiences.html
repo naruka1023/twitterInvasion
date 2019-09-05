@@ -8,7 +8,7 @@
         {% if audience is string %}
             <div style='padding-bottom: 30px; width: fit-content; font-size: 1.5em; margin: auto;'>No audiences found. Add one!</div>
         {% else %}
-            <table style='width:100%; margin-bottom:20px'>
+            <table style='width:100%; margin-bottom:10px'>
                 <thead>
                     <th style='text-align:center'>
                         <div >Name</div>
@@ -24,9 +24,44 @@
                     </tr>
                 {% endfor %}
             </table>
+            <div style='width:fit-content; float:right; margin-bottom:15px'>
+                <button class="btn" type='button' data-toggle="modal" data-target="#addAudience">Add New Audience</button>
+            </div>
         {% endif %}
     </div>
 
+    <div id="addAudience" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">New Audience</h4>
+                </div> 
+                <div class="modal-body udContainer" style='overflow:hidden; width:-webkit-fill-available'>
+                    <div style='padding:30px'>
+                        <div class="form-group" style='text-align:left'>
+                            <label for="link">Audience Name:</label>
+                            <input type="text" class="form-control" name="link">
+                        </div>
+                        <div class="form-group" style='text-align:left'>
+                            <div><label for="title">Search for Bands:</label></div>
+                            <div style='display: inline-flex; width: -webkit-fill-available;'>
+                                <input type="text" id="searchBar" class="form-control">
+                                <button id='searchBands'><i class='fa fa-search'></i></button>
+                            </div>
+                        </div>
+                    </div>               
+                    <table id='relatedTable' style='margin:auto; display:none'>
+                        <thead>
+                            <th style='padding:10px'>Artist</th>
+                            <th style='padding:10px'>Genres</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="audienceDetails" class="modal fade" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -39,7 +74,7 @@
                             <thead>
                                 <th style='padding:10px'>Artists</th>
                                 <th style='padding:10px'>Genres</th>
-                                <th style='padding:10px'>Followers</th>
+                                <!-- <th style='padding:10px'>Followers</th> -->
                             </thead>
                         </table>
                     </div>

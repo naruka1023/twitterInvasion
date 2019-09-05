@@ -85,6 +85,7 @@ def authorizeSpotify():
         data={'grant_type':'client_credentials'},
         auth=(client_id, client_secret))
     session['accessToken'] = json.loads(response.content)['access_token']
+    print('session refreshed : ' + session['accessToken'])
 
 @app.route('/getAudienceDetails/<an>')
 def getAudienceDetails(an=None):
@@ -103,10 +104,51 @@ def getAudienceDetails(an=None):
 
     return json.dumps(json_data)
 
-@app.route('/audiences')
-def audiences():
+@app.route('/searchsimiliarbands/<name>')
+def searchsimiliarbands(name=None):
     if 'accessToken' not in session:
         authorizeSpotify()
+        
+    if name is not None:
+        url = 'https://api.spotify.com/v1/search?q=' + name + '&type=artist'
+        response = requests.get(url, params={'access_token': session['accessToken']})
+        if response.status_code == 401:
+            authorizeSpotify()
+            response = requests.get(url, params={'access_token': session['accessToken']})
+
+        response = json.loads(response.content)['artists']['items'][0]
+        genres = ''
+        for x in response['genres']:
+            genres += x + ','
+        genres = genres[0:-2]
+        rawData = '{"name":"' + response['name'] + '", "genres": "' + genres + '"}'
+        print(rawData)
+        bandInQuestion = json.loads(rawData)
+        filteredArtists = []
+        filteredArtists.append(bandInQuestion)
+
+        artID = response['id']
+        relatedUrl = 'https://api.spotify.com/v1/artists/' + artID + '/related-artists'
+        relatedResponse = requests.get(relatedUrl, params={'access_token': session['accessToken']})
+        relatedArtists = json.loads(relatedResponse.content)['artists']
+        
+        for artist in relatedArtists:
+            relatedGenres = ''
+            for x in artist['genres']:
+                relatedGenres += x + ','
+
+            fa = {
+                "name" : artist['name'],
+                "genres" : relatedGenres
+            }
+            filteredArtists.append(fa)
+
+    else:
+        return 'watchmewhipwatchmenene'
+    return json.dumps(filteredArtists)
+
+@app.route('/audiences')
+def audiences():
 
     con = sql.connect("TWIdatabase.db")
     con.row_factory = sql.Row
@@ -117,10 +159,4 @@ def audiences():
     if len(row) == 0:
         row = 'empty'
     
-    # response = requests.get('https://api.spotify.com/v1/search?q=tool&type=artist', params={'access_token': session['accessToken']})
-    # if response.status_code == 401:
-    #     authorizeSpotify()
-    #     response = requests.get('https://api.spotify.com/v1/search?q=tool&type=artist', params={'access_token': session['accessToken']})
-    #     print(json.loads(response.content)['artists']['href'])
-    # print(json.loads(response.content)['artists']['href'])
     return render_template('audiences.html', audience=row)
