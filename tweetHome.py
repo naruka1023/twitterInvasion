@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session
-import tweepy as tw
+import twitter as tw
 import sqlite3 as sql
 import requests
 import base64
@@ -11,24 +11,15 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 client_id = '194c63a96c7f41e09907d7dd294a3e92'
 client_secret = '90b0da21280549a69a78ffb61a42086b'
 
+consumer_key='sXlA0jXvqwoSJR24eaOQB5dJm'
+consumer_secret='9Ghq9lyO9zxKBnokLYzF6C8e32vHQi3Qy10HA6PdQTLPcZ7d6Z'
+access_token = '1177881836-nrMwpla5LKEerjyAxzYidAaxZG3eaIAcPxI5crJ'
+access_token_secret='q7NOhA84xPUrGAk1K8V5uxwu1DpSyi3eFpvm9EMolvcz7'
+
 @app.route('/')
 def tweetInvasion():
-    # consumer_key='sXlA0jXvqwoSJR24eaOQB5dJm'
-    # consumer_secret='9Ghq9lyO9zxKBnokLYzF6C8e32vHQi3Qy10HA6PdQTLPcZ7d6Z'
-    # access_token = 'nrMwpla5LKEerjyAxzYidAaxZG3eaIAcPxI5crJ'
-    # access_token_secret='q7NOhA84xPUrGAk1K8V5uxwu1DpSyi3eFpvm9EMolvcz7'
 
-    # auth = tw.OAuthHandler(consumer_key, consumer_secret)
 
-    # api = tw.API(auth)
-    # results = api.GetSearch(raw_query="q=twitter%20&result_type=recent&since=2014-07-19&count=100")
-    # search_words = "#wildfires"
-    # date_since = "2018-11-16"
-    
-    # tweets = tw.Cursor(api.search,
-    #           q=search_words,
-    #           lang="en",
-    #           since=date_since).items(5)
 
     return render_template('tweetInvasion.html')
 
@@ -122,16 +113,17 @@ def searchsimiliarbands(name=None):
             genres += x + ','
         genres = genres[0:-2]
         rawData = '{"name":"' + response['name'] + '", "genres": "' + genres + '"}'
-        print(rawData)
         bandInQuestion = json.loads(rawData)
         filteredArtists = []
         filteredArtists.append(bandInQuestion)
+
 
         artID = response['id']
         relatedUrl = 'https://api.spotify.com/v1/artists/' + artID + '/related-artists'
         relatedResponse = requests.get(relatedUrl, params={'access_token': session['accessToken']})
         relatedArtists = json.loads(relatedResponse.content)['artists']
-        
+        listOfArtists2 = []
+        listOfArtists2.append((bandInQuestion['name'].replace(" ", '')))
         for artist in relatedArtists:
             relatedGenres = ''
             for x in artist['genres']:
@@ -142,10 +134,31 @@ def searchsimiliarbands(name=None):
                 "genres" : relatedGenres
             }
             filteredArtists.append(fa)
+            listOfArtists2.append(artist['name'].replace(" ", ""))
 
+        listOfArtists = ','.join(listOfArtists2)
+        print(listOfArtists)
+        api = tw.Api(consumer_key=consumer_key,
+                      consumer_secret=consumer_secret,
+                      access_token_key=access_token,
+                      access_token_secret=access_token_secret)
+        results = api.UsersLookup(screen_name=listOfArtists)
+        followers = []
+        for result in results:
+            temp = {}
+            temp['name'] = result.name
+            temp['screen_name'] = result.screen_name
+            temp['id'] = result.id
+            temp['verified'] = result.verified
+            temp['followers'] = result.followers_count
+            followers.append(temp)
+        followersIndex = 0
+        j = 0
+        everything = followers
+        everything.append(listOfArtists2)
     else:
         return 'watchmewhipwatchmenene'
-    return json.dumps(filteredArtists)
+    return json.dumps(everything)
 
 @app.route('/audiences')
 def audiences():

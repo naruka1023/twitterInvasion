@@ -10,12 +10,12 @@ $('#searchBands').click(()=>{
     var bandName = $('#searchBar').val();
     url = window.location.origin + '/searchsimiliarbands/' + bandName;
     $.getJSON(url, function(data){
-        $('#addAudience .modal-body table tbody').html("");
-        $('#addAudience .modal-body table').css("display", "unset");
-        data.forEach(function(item){
-            var tableCell = '<tr class="rowHover"><td>' + item.name + '</td><td>' + item.genres + '</td></tr>';
-            $('#addAudience .modal-body table tbody').append(tableCell);
-        });
+        // $('#addAudience .modal-body table tbody').html("");
+        // $('#addAudience .modal-body table').css("display", "unset");
+        // data.forEach(function(item){
+        //     var tableCell = '<tr class="rowHover"><td>' + item.name + '</td><td>' + item.genres + '</td></tr>';
+        //     $('#addAudience .modal-body table tbody').append(tableCell);
+        // });
         console.log(data);
     })
 })
