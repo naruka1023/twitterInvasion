@@ -18,13 +18,22 @@ access_token_secret='q7NOhA84xPUrGAk1K8V5uxwu1DpSyi3eFpvm9EMolvcz7'
 
 @app.route('/')
 def tweetInvasion():
+    contents = getContent()
+    audience = getAudiences() 
+    return render_template('tweetInvasion.html', contents=contents, audience=audience)
 
+def getContent():
+    con = sql.connect("TWIdatabase.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    cur.execute('select title, cID from content')
+    content = cur.fetchall()
+    if len(content) == 0:
+        content = 'empty'
+    con.close() 
+    return content   
 
-
-    return render_template('tweetInvasion.html')
-
-@app.route('/messages/<id>')
-def messages(id=None):
+def getMessages(id):
     if id is None:
         id = 1
     with sql.connect("TWIdatabase.db") as con:
@@ -32,15 +41,28 @@ def messages(id=None):
         cur = con.cursor()
         cur.execute("select * from messages as m join content as c on c.cID = m.cID where c.cID = %s"% id)
         rows = cur.fetchall()
-        cur.execute('select title, cID from content')
-        content = cur.fetchall()
+        content = getContent()
         if len(rows) == 0:
             cur.execute('select title from content where cID = %s'% id)
             title = cur.fetchone()
             title = title['title']
         else:
             title = rows[0]
-    return render_template('messages.html', rows=rows, content=content, id=id, title=title)
+    final = {
+        "rows" : rows,
+        "content" : content,
+        "id": id,
+        "title" : title
+    }
+    con.close()
+    return final
+
+@app.route('/messages/<id>')
+def messages(id=None):
+
+    final = getMessages(id)
+
+    return render_template('messages.html', rows=final["rows"], content=final["content"], id=final["id"], title=final["title"])
     con.close()
 
 @app.route('/newMessage<id>', methods = ['POST'])
@@ -164,16 +186,43 @@ def searchsimiliarbands(name=None):
         return 'watchmewhipwatchmenene'
     return json.dumps(filteredArtists)
 
-@app.route('/audiences')
-def audiences():
-
+def getAudiences():
     con = sql.connect("TWIdatabase.db")
     con.row_factory = sql.Row
     cur = con.cursor()
     cur.execute("SELECT sum(followers) as fl, name from audience group by name")
     row = cur.fetchall()
-    con.close()   
+    con.close()  
     if len(row) == 0:
         row = 'empty'
     
+    
+    return row
+
+@app.route('/audiences')
+def audiences():
+
+    row = getAudiences() 
     return render_template('audiences.html', audience=row)
+
+@app.route('/addNewAudience', methods = ['POST'])
+def addNewAudience():
+    req_data = request.get_data()
+    req_data = json.loads(req_data)
+    # print(req_data['artists'][0])
+
+    con = sql.connect("TWIdatabase.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    sql2 = "INSERT INTO audience (name, artist, followers, genres) VALUES"
+    values = []
+    for artist in req_data['artists']:
+        values.append('("' + req_data['audienceName'] + '", "' + artist['name'] + '", 0, "' + artist['genres'] + '")')
+    
+    values = (',').join(values)
+    sql2 += values
+    cur.execute(sql2)
+    con.commit()
+    con.close()
+
+    return 'success'
