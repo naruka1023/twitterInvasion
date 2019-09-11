@@ -17,7 +17,7 @@
                                 </thead>
                                 {% for content in contents %}
                                     <tr>
-                                        <td class='rowHover2' data-id='{{content["cID"]}}'>{{content['title']}}</td>
+                                        <td class='crowHover2' data-id='{{content["cID"]}}'>{{content['title']}}</td>
                                     </tr>
                                 {% endfor %}
                             </table>
@@ -30,12 +30,12 @@
                             <table style='width:100%'>
                                 <thead>
                                     <th style='text-align:center'>
-                                        <div ><b>CONTENT</b></div>
+                                        <div ><b>AUDIENCE</b></div>
                                     </th>
                                 </thead>
                                 {% for au in audience %}
                                     <tr>
-                                        <td class='rowHover2'>{{au['name']}}</td>
+                                        <td class='arowHover2'>{{au['name']}}</td>
                                     </tr>
                                 {% endfor %}
                             </table>
@@ -43,13 +43,30 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div style='height:30vh; background-color:green' class="col-md-6">
-
+                    <div id='chooseContent' style='height:30vh' class="col-md-6 udContainer">
+                        <table style='width:100%'>
+                            <thead>
+                                <th style='text-align:center'>
+                                    <div ><b>Selected contents</b></div>
+                                </th>
+                            </thead>
+                                <tbody>
+                                    
+                                </tbody>
+                        </table>
                     </div>
-                    <div style='height:30vh; background-color:yellow' class="col-md-6">
+                    <div id='chooseAudience' style='height:30vh' class="col-md-6 udContainer">
+                        <table style='width:100%'>
+                            <thead>
+                                <th style='text-align:center'>
+                                    <div ><b>Selected audiences</b></div>
+                                </th>
+                            </thead>
+                                <tbody>
 
+                                </tbody>
+                        </table>
                     </div>
-                </div>
             </div>
     </div>
 {% endblock %}

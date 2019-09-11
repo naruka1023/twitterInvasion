@@ -15,7 +15,7 @@
 .udContainer th{
     border: 0.5px solid;
 }
-.rowHover:hover, .rowHover2:hover{
+.rowHover:hover, .crowHover2:hover, .arowHover2:hover{
     background-color:lightcyan;
     cursor:pointer
 }
