@@ -1,5 +1,22 @@
 
 localStorage.clear();
+$('#beginInvasion').click(()=>{
+    selectedContent = JSON.parse(localStorage.getItem('Content'));
+    selectedAudience = JSON.parse(localStorage.getItem('Audience'));
+    
+    payload = {};
+    payload['content'] = selectedContent;
+    payload['audience'] = selectedAudience;
+    payload = JSON.stringify(payload);
+
+    url = window.location.origin + '/results';
+    $.ajaxSetup({contentType:'application/json'});
+    $.post(url, payload, function(data, status){
+        if(data == 'success'){
+            window.location.href = window.location.origin + '/beginInvasion';
+        }
+    });
+})
 $('.crowHover2, .arowHover2').click((e)=>{
     if(e.target.className == 'crowHover2'){
         label = 'Content';

@@ -1,0 +1,87 @@
+<!doctype html>
+<head>
+    <title>Twitter Invasion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+</head>
+<body style='background-color:lightcoral'>
+    <div style='width:40vh; height:50%; margin:auto' id='databinding'>
+        <potentialfollowers
+            v-for = "(item, index) in listShared"
+            v-bind:flag = 'item.flag'
+            v-bind:content = 'item.content'
+            v-bind:follower = 'item.follower'>
+        </potentialfollowers>
+        <div>DM: {{ dm }}/1000</div>
+        <div>Tweet: {{ tweet }}/1000</div>
+        <button v-on:click='pressEvent' v-bind:style = "styleobj" id='addNewFollowers'>Add new followers</button>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.0/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.slim.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-socket.io-extended"></script>
+    <script>
+        // var socket = io('http://127.0.0.1:5000/');
+        // Vue.use(VueSocketIOExt, socket);
+
+        Vue.component('potentialfollowers',{
+            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell"><p>{{flag}}ed {{content}} to {{follower}}</p></div></div></div>',
+            props: ['flag', 'content', 'follower', 'index'],
+            data: function() {
+               return {
+                  styleobj : {
+                     backgroundColor:this.getcolor(),
+                     fontSize : 20
+                  }
+               }
+            },
+            methods:{
+               getcolor : function() {
+                  if (this.index % 2) {
+                     return "#FFE633";
+                  } else {
+                     return "#D4CA87";
+                  }
+               }
+            }
+         });
+         var vm = new Vue({
+            el: '#databinding',
+            data: {
+                dm:0,
+                tweet:0,   
+                listShared:[],
+                styleobj: {
+                    backgroundColor: '#2196F3!important',
+                    cursor: 'pointer',
+                    padding: '8px 16px',
+                    verticalAlign: 'middle',
+                }
+            },
+            mounted:function(){
+                console.log('something')
+            },
+            methods :{
+               tweetSuccessful : function(flag, content, follower) {
+                  this.listShared.push({
+                     flag: flag,
+                     content: content,
+                     follower : follower
+                  });
+                  if(flag == 'DM'){
+                      this.dm++
+                  }else{
+                      this.tweet++;
+                  }
+               },
+               pressEvent : function(){
+                   this.tweetSuccessful('DM', 'North Korea Uber Allies', 'so and so');
+               }
+            }
+         });
+
+    </script> 
+</body>
+</html>

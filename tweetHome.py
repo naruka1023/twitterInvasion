@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session
+# from flask_socketio import SocketIO
 import twitter as tw
 import sqlite3 as sql
 import requests
@@ -7,6 +8,7 @@ import json
 consumer_key = ''
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+# socketio = SocketIO(app)
 
 client_id = '194c63a96c7f41e09907d7dd294a3e92'
 client_secret = '90b0da21280549a69a78ffb61a42086b'
@@ -15,12 +17,29 @@ consumer_key='sXlA0jXvqwoSJR24eaOQB5dJm'
 consumer_secret='9Ghq9lyO9zxKBnokLYzF6C8e32vHQi3Qy10HA6PdQTLPcZ7d6Z'
 access_token = '1177881836-nrMwpla5LKEerjyAxzYidAaxZG3eaIAcPxI5crJ'
 access_token_secret='q7NOhA84xPUrGAk1K8V5uxwu1DpSyi3eFpvm9EMolvcz7'
-
+s = 'something'
 @app.route('/')
 def tweetInvasion():
     contents = getContent()
     audience = getAudiences() 
     return render_template('tweetInvasion.html', contents=contents, audience=audience)
+
+@app.route('/beginInvasion')
+def beginInvasion():
+    return render_template('results.html')
+
+@app.route('/commence')
+def commence():
+
+    return 'invasion complete'
+
+@app.route('/results', methods = ['POST'])
+def results():
+    global s 
+    req_data = request.get_data()
+    print(req_data)
+    s = req_data
+    return 'success'
 
 def getContent():
     con = sql.connect("TWIdatabase.db")
