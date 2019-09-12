@@ -4,31 +4,30 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-</head>
-<body style='background-color:lightcoral'>
-    <div style='width:40vh; height:50%; margin:auto' id='databinding'>
-        <potentialfollowers
-            v-for = "(item, index) in listShared"
-            v-bind:flag = 'item.flag'
-            v-bind:content = 'item.content'
-            v-bind:follower = 'item.follower'>
-        </potentialfollowers>
-        <div>DM: {{ dm }}/1000</div>
-        <div>Tweet: {{ tweet }}/1000</div>
-        <button v-on:click='pressEvent' v-bind:style = "styleobj" id='addNewFollowers'>Add new followers</button>
-    </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.0/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.slim.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-socket.io-extended"></script>
+</head>
+<body style='background-color:lightcoral'>
+    <div style='width:40vh; height:50%; margin:35vh auto' id='databinding'>
+        <potentialfollowers
+            v-for = "(item, index) in listshared"
+            v-bind:item = 'item'>
+        </potentialfollowers>
+        <div>DM: {% raw %}{{ dm }}{% endraw %}/1000</div>
+        <div>Tweet: {% raw %}{{ tweet }}{% endraw %}/3000</div>
+        <button v-on:click='pressEvent' v-bind:style = "styleobj" id='addNewFollowers'>Add new followers</button>
+    </div>
+
     <script>
         // var socket = io('http://127.0.0.1:5000/');
         // Vue.use(VueSocketIOExt, socket);
 
         Vue.component('potentialfollowers',{
-            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell"><p>{{flag}}ed {{content}} to {{follower}}</p></div></div></div>',
-            props: ['flag', 'content', 'follower', 'index'],
+            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to {% raw %}{{ item.follower }}{% endraw %}</p></div></div></div>',
+            props: ['item' , 'index'],
             data: function() {
                return {
                   styleobj : {
@@ -52,7 +51,7 @@
             data: {
                 dm:0,
                 tweet:0,   
-                listShared:[],
+                listshared:[{flag:'DM', follower:'Pan', content: 'North Korea Uber Allies'}],
                 styleobj: {
                     backgroundColor: '#2196F3!important',
                     cursor: 'pointer',
@@ -65,7 +64,7 @@
             },
             methods :{
                tweetSuccessful : function(flag, content, follower) {
-                  this.listShared.push({
+                  this.listshared.push({
                      flag: flag,
                      content: content,
                      follower : follower

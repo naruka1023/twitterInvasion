@@ -36,10 +36,39 @@ def commence():
 @app.route('/results', methods = ['POST'])
 def results():
     global s 
+
+    con = sql.connect("TWIdatabase.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+
     req_data = request.get_data()
+    req_data = json.loads(req_data)
+    i = 0
+
+    for content in req_data['content']:
+        cur.execute('select messages from messages where cID=%s' % content['id'])
+        content = cur.fetchall()
+        messages = []
+        for row in content:
+            messages.append(row['messages'])
+        req_data['content'][i]['messages'] = messages
+        i += 1
+    i = 0
+    for audience in req_data['audience']:
+        cur.execute('select artist from audience where name="%s"' % audience)
+        content = cur.fetchall()
+        artists = []
+        for row in content:
+            artists.append(row['artist'])
+        req_data['audience'][i] = {}
+
+        req_data['audience'][i]['name'] = audience
+        req_data['audience'][i]['artist'] = artists
+        i += 1
     print(req_data)
+    con.close() 
     s = req_data
-    return 'success'
+    return s
 
 def getContent():
     con = sql.connect("TWIdatabase.db")
