@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, session
 # from flask_socketio import SocketIO
 import twitter as tw
 import sqlite3 as sql
+from pprint import pprint
 import requests
 import base64
 import json
@@ -17,7 +18,14 @@ consumer_key='sXlA0jXvqwoSJR24eaOQB5dJm'
 consumer_secret='9Ghq9lyO9zxKBnokLYzF6C8e32vHQi3Qy10HA6PdQTLPcZ7d6Z'
 access_token = '1177881836-nrMwpla5LKEerjyAxzYidAaxZG3eaIAcPxI5crJ'
 access_token_secret='q7NOhA84xPUrGAk1K8V5uxwu1DpSyi3eFpvm9EMolvcz7'
-s = 'something'
+s = ''
+
+api = tw.Api(consumer_key=consumer_key,
+                consumer_secret=consumer_secret,
+                access_token_key=access_token,
+                access_token_secret=access_token_secret)
+# results = api.UsersLookup(screen_name=listOfArtists)
+
 @app.route('/')
 def tweetInvasion():
     contents = getContent()
@@ -30,12 +38,39 @@ def beginInvasion():
 
 @app.route('/commence')
 def commence():
+    global api
 
+    con = sql.connect("TWIdatabase.db")
+    con.row_factory = sql.Row
+    cur = con.cursor()
+
+    s = session['userSelected']
+    artistID = []
+    for audience in s['audience']:
+        for artist in audience['artist']:
+            cur.execute('select name, artist, twitterID from audience where name = "%s" AND artist = "%s"'% (audience['name'], artist))
+            content = cur.fetchone()
+            if content['twitterID'] is None or content['twitterID'] is '':
+                results = api.GetUsersSearch(term=content['artist'], count=2)
+
+                if results[0].verified is True and artist.lower() in results[0].name.lower():
+                    sql2 = 'update audience set twitterID = %d where name = "%s" and artist = "%s"' % (results[0].id, audience['name'], artist)
+                    cur.execute(sql2)
+                    artistID.append(results[0].id)
+                else:
+                    sql2 = 'update audience set twitterID = %d where name = "%s" and artist = "%s"' % (-1, audience['name'], artist)
+                    cur.execute(sql2)
+                con.commit()
+    
+
+
+
+    
+    con.close() 
     return 'invasion complete'
 
 @app.route('/results', methods = ['POST'])
 def results():
-    global s 
 
     con = sql.connect("TWIdatabase.db")
     con.row_factory = sql.Row
@@ -65,10 +100,10 @@ def results():
         req_data['audience'][i]['name'] = audience
         req_data['audience'][i]['artist'] = artists
         i += 1
-    print(req_data)
+    pprint(req_data)
     con.close() 
-    s = req_data
-    return s
+    session['userSelected'] = req_data
+    return 'success'
 
 def getContent():
     con = sql.connect("TWIdatabase.db")
