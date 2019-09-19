@@ -11,14 +11,16 @@
     <script src="https://cdn.jsdelivr.net/npm/vue-socket.io-extended"></script>
 </head>
 <body style='background-color:lightcoral'>
-    <div style='width:40vh; height:50%; margin:35vh auto' id='databinding'>
-        <potentialfollowers
-            v-for = "(item, index) in listshared"
-            v-bind:item = 'item'>
-        </potentialfollowers>
-        <div>DM: {% raw %}{{ dm }}{% endraw %}/1000</div>
-        <div>Tweet: {% raw %}{{ tweet }}{% endraw %}/3000</div>
-        <button v-on:click='pressEvent' v-bind:style = "styleobj" id='addNewFollowers'>Add new followers</button>
+    <div style='width:40vh; margin:35vh auto' id='databinding'>
+         <div style='overflow-y: scroll; height: 250px;'>
+            <potentialfollowers
+               v-for = "(item, index) in listshared"
+               v-bind:item = 'item'>
+            </potentialfollowers>
+         </div>
+         <div>DM: {% raw %}{{ dm }}{% endraw %}/1000</div>
+         <div>Tweet: {% raw %}{{ tweet }}{% endraw %}/3000</div>
+         <button v-on:click='pressEvent' v-bind:style = "styleobj" id='addNewFollowers'>Add new followers</button>
     </div>
 
     <script>
@@ -26,7 +28,7 @@
         // Vue.use(VueSocketIOExt, socket);
 
         Vue.component('potentialfollowers',{
-            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to {% raw %}{{ item.follower }}{% endraw %}</p></div></div></div>',
+            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell" style="padding:30px"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to {% raw %}{{ item.follower }}{% endraw %}</p></div></div></div>',
             props: ['item' , 'index'],
             data: function() {
                return {

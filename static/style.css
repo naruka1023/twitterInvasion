@@ -30,7 +30,7 @@
 }
 .Table{
     display: table;
-    width:80%;
+    width:100%;
  }
  .Title{
     display: table-caption;
