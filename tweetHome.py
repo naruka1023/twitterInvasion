@@ -47,10 +47,12 @@ def commence():
     s = session['userSelected']
     artistID = []
     for audience in s['audience']:
-        sql3 = 'update audience set twitterID ="", screenName="" where name="%s"' % (audience['name'])
+
+        sql3 = 'update audience set twitterID ="", audienceContent="",screenName="" where name="%s"' % (audience['name'])
         print(sql3)
         cur.execute(sql3)
         con.commit()
+
         for artist in audience['artist']:
             cur.execute('select name, artist, twitterID from audience where name = "%s" AND artist = "%s"'% (audience['name'], artist))
             content = cur.fetchone()
@@ -73,21 +75,21 @@ def commence():
         cur.execute('select cursor, cursorIndex, screenName, audienceContent from audience where twitterID = %d' % ids)
         result = cur.fetchone()
         if result['audienceContent'] is '' or result['audienceContent'] is None:
-            print(result['screenName'])
-            print(ids)
             ids2 = str(ids)
-            newFollowers = api.GetFollowersPaged(user_id=ids2, screen_name=result['screen_name'], screencount=200)
+            newFollowers = api.GetFollowersPaged(user_id=ids2, cursor=-1, screen_name=result['screenName'], count=200)
             filteredFollowers = []
             # print(newFollowers)
-            for follower in newFollowers[2].users:
+            for follower in newFollowers[2]:
                 temp = {}
-                temp['id'] = follower['id']
-                temp['screen_name'] = follower['screen_name']
+                temp['id'] = follower.id
+                temp['screen_name'] = follower.screen_name
                 filteredFollowers.append(temp)
             
             filteredFollowers = json.dumps(filteredFollowers)
-            cur.execute('update audience set audienceContent = "%s", cursor="%s" where twitterID= %d' % (filteredFollowers, newFollowers[1], ids))
-            cur.commit()
+            finalSql = "update audience set audienceContent = '%s', cursor='%s' where twitterID= %d"%(filteredFollowers, newFollowers[1], ids)
+            pprint(filteredFollowers)
+            cur.execute(finalSql)
+            con.commit()
         print('work')
     
     con.close() 
