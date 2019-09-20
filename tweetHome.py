@@ -47,24 +47,48 @@ def commence():
     s = session['userSelected']
     artistID = []
     for audience in s['audience']:
+        sql3 = 'update audience set twitterID ="", screenName="" where name="%s"' % (audience['name'])
+        print(sql3)
+        cur.execute(sql3)
+        con.commit()
         for artist in audience['artist']:
             cur.execute('select name, artist, twitterID from audience where name = "%s" AND artist = "%s"'% (audience['name'], artist))
             content = cur.fetchone()
+
             if content['twitterID'] is None or content['twitterID'] is '':
                 results = api.GetUsersSearch(term=content['artist'], count=2)
 
                 if results[0].verified is True and artist.lower() in results[0].name.lower():
-                    sql2 = 'update audience set twitterID = %d where name = "%s" and artist = "%s"' % (results[0].id, audience['name'], artist)
+                    sql2 = 'update audience set screenName = "%s", twitterID = %d where name = "%s" and artist = "%s"' % (results[0].screen_name, results[0].id, audience['name'], artist)
                     cur.execute(sql2)
+                    print(sql2)
                     artistID.append(results[0].id)
                 else:
-                    sql2 = 'update audience set twitterID = %d where name = "%s" and artist = "%s"' % (-1, audience['name'], artist)
+                    sql2 = 'update audience set screenName = "%s", twitterID = %d where name = "%s" and artist = "%s"' % (results[0].screen_name, -1, audience['name'], artist)
                     cur.execute(sql2)
+                    print(sql2)
                 con.commit()
     
-
-
-
+    for ids in artistID:
+        cur.execute('select cursor, cursorIndex, screenName, audienceContent from audience where twitterID = %d' % ids)
+        result = cur.fetchone()
+        if result['audienceContent'] is '' or result['audienceContent'] is None:
+            print(result['screenName'])
+            print(ids)
+            ids2 = str(ids)
+            newFollowers = api.GetFollowersPaged(user_id=ids2, screen_name=result['screen_name'], screencount=200)
+            filteredFollowers = []
+            # print(newFollowers)
+            for follower in newFollowers[2].users:
+                temp = {}
+                temp['id'] = follower['id']
+                temp['screen_name'] = follower['screen_name']
+                filteredFollowers.append(temp)
+            
+            filteredFollowers = json.dumps(filteredFollowers)
+            cur.execute('update audience set audienceContent = "%s", cursor="%s" where twitterID= %d' % (filteredFollowers, newFollowers[1], ids))
+            cur.commit()
+        print('work')
     
     con.close() 
     return 'invasion complete'
