@@ -11,8 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/vue-socket.io-extended"></script>
 </head>
 <body style='background-color:lightcoral'>
-    <div style='width:40vh; margin:35vh auto' id='databinding'>
-         <div style='overflow-y: scroll; height: 250px;'>
+    <div style='width:59vh; margin:5vh auto' id='databinding'>
+         <div style='overflow-y: scroll; height: 750px;'>
             <potentialfollowers
                v-for = "(item, index) in listshared"
                v-bind:item = 'item'>
@@ -24,11 +24,11 @@
     </div>
 
     <script>
-        // var socket = io('http://127.0.0.1:5000/');
-        // Vue.use(VueSocketIOExt, socket);
+        var socket = io('http://127.0.0.1:5000/');
+        Vue.use(VueSocketIOExt, socket);
 
         Vue.component('potentialfollowers',{
-            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell" style="padding:30px"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to {% raw %}{{ item.follower }}{% endraw %}</p></div></div></div>',
+            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell" style="padding:30px"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to {% raw %}{{ item.follower }}{% endraw %}</p><br><div>{% raw %}{{ item.message }}{% endraw %}</div></div></div></div>',
             props: ['item' , 'index'],
             data: function() {
                return {
@@ -62,7 +62,9 @@
                 }
             },
             mounted:function(){
-                console.log('something')
+                socket.on('success', (data)=>{
+                    this.tweetSuccessful('DM', data.content, data.message, data.follower);
+                })
             },
             methods :{
                tweetSuccessful : function(flag, content, follower) {
@@ -75,6 +77,9 @@
                       this.dm++
                   }else{
                       this.tweet++;
+                  }
+                  if(this.listshared.length > 6){
+                      this.listshared.shift()
                   }
                },
                pressEvent : function(){

@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, session
-# from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 import twitter as tw
 import sqlite3 as sql
+from random import randint
 from pprint import pprint
 import requests
 import base64
@@ -9,21 +10,22 @@ import json
 consumer_key = ''
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-# socketio = SocketIO(app)
+socketio = SocketIO(app)
 
 client_id = '194c63a96c7f41e09907d7dd294a3e92'
 client_secret = '90b0da21280549a69a78ffb61a42086b'
 
 consumer_key='sXlA0jXvqwoSJR24eaOQB5dJm'
 consumer_secret='9Ghq9lyO9zxKBnokLYzF6C8e32vHQi3Qy10HA6PdQTLPcZ7d6Z'
-access_token = '1177881836-nrMwpla5LKEerjyAxzYidAaxZG3eaIAcPxI5crJ'
-access_token_secret='q7NOhA84xPUrGAk1K8V5uxwu1DpSyi3eFpvm9EMolvcz7'
+access_token = '1177881836-nSvi4fg6BvROrs6EPjZpwRL93jZHF4iUZYIub8X'
+access_token_secret='C9rqY1ieHOaqQgg1G7jANh8kwnk12QVu25IqfbthNhoBM'
 s = ''
 
 api = tw.Api(consumer_key=consumer_key,
                 consumer_secret=consumer_secret,
                 access_token_key=access_token,
-                access_token_secret=access_token_secret)
+                access_token_secret=access_token_secret,
+                sleep_on_rate_limit=True)
 # results = api.UsersLookup(screen_name=listOfArtists)
 
 @app.route('/')
@@ -48,10 +50,10 @@ def commence():
     artistID = []
     for audience in s['audience']:
 
-        sql3 = 'update audience set twitterID ="", audienceContent="",screenName="" where name="%s"' % (audience['name'])
-        print(sql3)
-        cur.execute(sql3)
-        con.commit()
+        # sql3 = 'update audience set twitterID ="", audienceContent="",screenName="" where name="%s"' % (audience['name'])
+        # print(sql3)
+        # cur.execute(sql3)
+        # con.commit()
 
         for artist in audience['artist']:
             cur.execute('select name, artist, twitterID from audience where name = "%s" AND artist = "%s"'% (audience['name'], artist))
@@ -63,20 +65,88 @@ def commence():
                 if results[0].verified is True and artist.lower() in results[0].name.lower():
                     sql2 = 'update audience set screenName = "%s", twitterID = %d where name = "%s" and artist = "%s"' % (results[0].screen_name, results[0].id, audience['name'], artist)
                     cur.execute(sql2)
-                    print(sql2)
+                    # print(sql2)
                     artistID.append(results[0].id)
                 else:
                     sql2 = 'update audience set screenName = "%s", twitterID = %d where name = "%s" and artist = "%s"' % (results[0].screen_name, -1, audience['name'], artist)
                     cur.execute(sql2)
-                    print(sql2)
+                    # print(sql2)
                 con.commit()
-    
-    for ids in artistID:
-        cur.execute('select cursor, cursorIndex, screenName, audienceContent from audience where twitterID = %d' % ids)
-        result = cur.fetchone()
-        if result['audienceContent'] is '' or result['audienceContent'] is None:
-            ids2 = str(ids)
-            newFollowers = api.GetFollowersPaged(user_id=ids2, cursor=-1, screen_name=result['screenName'], count=200)
+                print('twitter Work')
+            else:
+                print('twitter no need to work')
+
+    if len(artistID) != 0:
+        for ids in artistID:
+            cur.execute('select cursor, cursorIndex, screenName, audienceContent from audience where twitterID = %d' % ids)
+            result = cur.fetchone()
+
+            if result['audienceContent'] is '' or result['audienceContent'] is None:
+                ids2 = str(ids)
+                newFollowers = api.GetFollowersPaged(user_id=ids2, cursor=-1, screen_name=result['screenName'], count=200)
+                filteredFollowers = []
+                # print(newFollowers)
+                for follower in newFollowers[2]:
+                    temp = {}
+                    temp['id'] = follower.id
+                    temp['screen_name'] = follower.screen_name
+                    filteredFollowers.append(temp)
+                
+                filteredFollowers = json.dumps(filteredFollowers)
+                finalSql = "update audience set audienceContent = '%s', cursor='%s' where twitterID= %d"%(filteredFollowers, newFollowers[0], ids)
+                # pprint(filteredFollowers)
+                cur.execute(finalSql)
+                con.commit()
+                print('work')
+            else:
+                print('no need to work')
+    else:
+        print('no need to work2')
+
+    audienceNames = []
+    if len(artistID) == 0:
+        for audience in s['audience']:
+            audienceNames.append(audience['name'])
+
+        temp = ''
+        if len(audienceNames) == 1:
+            temp = 'select twitterID from audience where name="' + audienceNames[0] + '"'
+        else:
+            temp = 'select twitterID from audience where name in (' + (', ').join(audienceNames) + ')'
+        temp += 'AND twitterID != -1'
+        cur.execute(temp)
+
+        row = cur.fetchall()
+        artistID = [str(artist['twitterID']) for artist in row]
+
+    sqlFollowers = 'SELECT audienceContent, twitterID, screenName from audience WHERE twitterID IN (' + (', ').join(artistID) + ')'
+    cur.execute(sqlFollowers)
+    followers2 = cur.fetchall()
+    followers = [json.loads(follower['audienceContent']) for follower in followers2]
+    twitterIDs = [ids['twitterID'] for ids in followers2]
+    sqlIndex = 'SELECT cursorIndex from audience WHERE twitterID IN (' + (', ').join(artistID) + ')'
+    cur.execute(sqlIndex)
+    indexList = cur.fetchall()
+    indexList = [index['cursorIndex'] for index in indexList]
+    # pprint(session['userSelected'])
+
+    i = 100
+    while(i>=0):
+        rand = randint(0, len(artistID)-1)
+        twitterRand = randint(0, len(twitterIDs)-1)
+        currentIndex = indexList[rand]
+        print(type(currentIndex))
+        print(type(len(followers[rand])))
+        currentIndex = int(currentIndex)
+        if currentIndex == len(followers[rand]):
+            print('yes')
+            cur.execute('select cursor, screenName from audience where twitterID = %d' % twitterIDs[twitterRand])
+            row = cur.fetchone()
+            cursor = row['cursor']
+            screenName = row['screenName']
+            indexList[rand] = 0
+            currentIndex = 0
+            newFollowers = api.GetFollowersPaged(user_id=twitterIDs[rand], cursor=int(cursor), screen_name=screenName, count=200)
             filteredFollowers = []
             # print(newFollowers)
             for follower in newFollowers[2]:
@@ -84,16 +154,50 @@ def commence():
                 temp['id'] = follower.id
                 temp['screen_name'] = follower.screen_name
                 filteredFollowers.append(temp)
-            
+            followers = filteredFollowers
             filteredFollowers = json.dumps(filteredFollowers)
-            finalSql = "update audience set audienceContent = '%s', cursor='%s' where twitterID= %d"%(filteredFollowers, newFollowers[1], ids)
-            pprint(filteredFollowers)
+            finalSql = "update audience set audienceContent = '%s', cursor='%s', cursorIndex=%d where twitterID= %d"%(filteredFollowers, newFollowers[0], 0, twitterIDs[rand])
             cur.execute(finalSql)
             con.commit()
-        print('work')
-    
+        else:
+            print('someth')
+            
+        print(currentIndex)
+        currentFollower = followers[rand][currentIndex]['id']
+        indexList[rand] += 1
+
+        content = session['userSelected']['content']
+        randContent = randint(0, len(content)-1)
+        randMessage = randint(0, len(content[randContent]['messages'])-1)
+
+        chosenContent = content[randContent]
+        chosenMessage = chosenContent['messages'][randMessage]
+        cur.execute('select link from content where cID = %d'% chosenContent['id'])
+        chosenLink = cur.fetchone()['link']
+        cur.execute('update audience set cursorIndex="%s" where twitterID=%d'% (indexList[rand], twitterIDs[rand]))
+        con.commit()
+        result = api.PostDirectMessage(chosenMessage + " " + chosenLink, currentFollower, return_json=True)
+        socketio.emit('success', {'content': chosenContent['name'], 'message':chosenMessage, 'follower':followers[rand][int(currentIndex)]['screen_name']})
+        # print(chosenContent['name'] + ' : ' + chosenMessage + ' : ' + str(i))
+        i -= 1
+
+    # result = api.CheckRateLimit('https://api.twitter.com/1.1/statuses/update.json')
+
+
     con.close() 
     return 'invasion complete'
+
+@app.route('/tweettest')
+def tweetTest():
+    # # result = api.PostUpdates(status='tweet Successful!')
+    # result = api.CheckRateLimit('https://api.twitter.com/1.1/direct_messages/events/new.json')
+    # print(result)
+    # return 'something'
+    # result = api.PostDirectMessage('something', '1165838593807376384', return_json=True)
+    # print(len('fdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfd'))
+    pprint(session['userSelected'])
+
+    return '<div>success</div>'
 
 @app.route('/results', methods = ['POST'])
 def results():
