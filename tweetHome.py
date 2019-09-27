@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session
-from flask_socketio import SocketIO, emit
+# from flask_socketio import SocketIO, emit
 import twitter as tw
 import sqlite3 as sql
 from random import randint
@@ -11,7 +11,7 @@ import time
 consumer_key = ''
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-socketio = SocketIO(app)
+# socketio = SocketIO(app)
 
 client_id = '194c63a96c7f41e09907d7dd294a3e92'
 client_secret = '90b0da21280549a69a78ffb61a42086b'
@@ -48,6 +48,7 @@ def commence():
     cur = con.cursor()
 
     s = session['userSelected']
+    pprint(s)
     artistID = []
     for audience in s['audience']:
 
@@ -63,8 +64,8 @@ def commence():
             if content['twitterID'] is None or content['twitterID'] is '':
                 results = api.GetUsersSearch(term=content['artist'], count=2)
 
-                if results[0].verified is True and artist.lower() in results[0].name.lower():
-                    sql2 = 'update audience set screenName = "%s", twitterID = %d where name = "%s" and artist = "%s"' % (results[0].screen_name, results[0].id, audience['name'], artist)
+                if results[0].verified is True or artist.lower() in results[0].name.lower():
+                    sql2 = 'update audience set screenName = "%s", twitterID = %d, cursorIndex = %d where name = "%s" and artist = "%s"' % (results[0].screen_name, results[0].id, 0, audience['name'], artist)
                     cur.execute(sql2)
                     # print(sql2)
                     artistID.append(results[0].id)
@@ -105,7 +106,9 @@ def commence():
         print('no need to work2')
 
     audienceNames = []
+    print(len(artistID))
     if len(artistID) == 0:
+        print('something')
         for audience in s['audience']:
             audienceNames.append(audience['name'])
 
@@ -119,8 +122,12 @@ def commence():
 
         row = cur.fetchall()
         artistID = [str(artist['twitterID']) for artist in row]
+    else:
+        artistID = [str(artist) for artist in artistID]
+
 
     sqlFollowers = 'SELECT audienceContent, twitterID, screenName from audience WHERE twitterID IN (' + (', ').join(artistID) + ')'
+    print(artistID)
     cur.execute(sqlFollowers)
     followers2 = cur.fetchall()
     followers = [json.loads(follower['audienceContent']) for follower in followers2]
@@ -129,6 +136,7 @@ def commence():
     cur.execute(sqlIndex)
     indexList = cur.fetchall()
     indexList = [index['cursorIndex'] for index in indexList]
+    print(indexList)
     # pprint(session['userSelected'])
 
     i = 1
@@ -204,6 +212,9 @@ def commence():
             socketio.emit('success', {'content': chosenContent['name'], 'message':chosenMessage, 'follower':followersPerPost})
             # print(chosenContent['name'] + ' : ' + chosenMessage + ' : ' + str(i))
             time.sleep(36)
+    else:
+        print('doesn')
+        pprint(s)
 
     con.close() 
     return 'invasion complete'
