@@ -38,25 +38,24 @@ $('#searchBands').click(()=>{
             chosenTableCell = '<tr><td data-id="'+ bandDetails.index +'" >' + bandDetails.name + '</td><td data-id="'+ bandDetails.index +'" >' + bandDetails.genres + '</td></tr>';
             $('#chosenTable tbody').append(chosenTableCell);
         });
-        $('#confirm').click(function(){
-            chosenArtists = localStorage.getItem('chosenArtists');
-            chosenArtists = JSON.parse(chosenArtists);
-            payload ={};
-            payload['artists'] = chosenArtists;
-            payload['audienceName'] = $('#audienceNameInput').val();
-            payload = JSON.stringify(payload);
-
-            url = window.location.origin + '/addNewAudience';
-            $.ajaxSetup({contentType:'application/json'});
-            $.post(url, payload, function(data, status){
-                if(data == 'success'){
-                    window.location.href = window.location.origin + '/audiences';
-                }
-            });
-        })
     })
 })
+function confirmClick(){
+    chosenArtists = localStorage.getItem('chosenArtists');
+    chosenArtists = JSON.parse(chosenArtists);
+    payload ={};
+    payload['artists'] = chosenArtists;
+    payload['audienceName'] = $('#audienceNameInput').val();
+    payload = JSON.stringify(payload);
 
+    url = window.location.origin + '/addNewAudience';
+    $.ajaxSetup({contentType:'application/json'});
+    $.post(url, payload, function(data, status){
+        if(data == 'success'){
+            window.location.href = window.location.origin + '/audiences';
+        }
+    });
+}
 $('#audienceDetails').on('show.bs.modal', function(e) {
     var audienceName = $(e.relatedTarget).data('id');
     url = window.location.origin + '/getAudienceDetails/' + audienceName;
