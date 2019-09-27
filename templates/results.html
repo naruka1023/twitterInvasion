@@ -18,7 +18,7 @@
                v-bind:item = 'item'>
             </potentialfollowers>
          </div>
-         <div>DM: {% raw %}{{ dm }}{% endraw %}/1000</div>
+         <div>Total Followers: {% raw %}{{ totalFollowers }}{% endraw %}</div>
          <div>Tweet: {% raw %}{{ tweet }}{% endraw %}/3000</div>
          <button v-on:click='pressEvent' v-bind:style = "styleobj" id='addNewFollowers'>Add new followers</button>
     </div>
@@ -28,7 +28,7 @@
         Vue.use(VueSocketIOExt, socket);
 
         Vue.component('potentialfollowers',{
-            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell" style="padding:30px"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to {% raw %}{{ item.follower }}{% endraw %}</p><br><div>{% raw %}{{ item.message }}{% endraw %}</div></div></div></div>',
+            template : '<div class = "Table"><div class = "Row"  v-bind:style = "styleobj"><div class = "Cell" style="padding:30px"><p>{% raw %}{{ item.flag }}{% endraw %}ed {% raw %}{{ item.content }}{% endraw %} to <b>{% raw %}{{ item.follower }}{% endraw %} people</b></p><br><div>{% raw %}{{ item.message }}{% endraw %}</div></div></div></div>',
             props: ['item' , 'index'],
             data: function() {
                return {
@@ -52,8 +52,9 @@
             el: '#databinding',
             data: {
                 dm:0,
-                tweet:0,   
-                listshared:[{flag:'DM', follower:'Pan', content: 'North Korea Uber Allies'}],
+                tweet:0,  
+                totalFollowers:0, 
+                listshared:[],
                 styleobj: {
                     backgroundColor: '#2196F3!important',
                     cursor: 'pointer',
@@ -63,15 +64,17 @@
             },
             mounted:function(){
                 socket.on('success', (data)=>{
-                    this.tweetSuccessful('DM', data.content, data.message, data.follower);
+                    this.tweetSuccessful('Tweet', data.content, data.follower, data.message);
+                    this.totalFollowers += data.follower
                 })
             },
             methods :{
-               tweetSuccessful : function(flag, content, follower) {
+               tweetSuccessful : function(flag, content, follower, message) {
                   this.listshared.push({
                      flag: flag,
                      content: content,
-                     follower : follower
+                     follower : follower,
+                     message: message
                   });
                   if(flag == 'DM'){
                       this.dm++

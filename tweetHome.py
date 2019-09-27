@@ -7,6 +7,7 @@ from pprint import pprint
 import requests
 import base64
 import json
+import time
 consumer_key = ''
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -15,10 +16,10 @@ socketio = SocketIO(app)
 client_id = '194c63a96c7f41e09907d7dd294a3e92'
 client_secret = '90b0da21280549a69a78ffb61a42086b'
 
-consumer_key='sXlA0jXvqwoSJR24eaOQB5dJm'
-consumer_secret='9Ghq9lyO9zxKBnokLYzF6C8e32vHQi3Qy10HA6PdQTLPcZ7d6Z'
-access_token = '1177881836-nSvi4fg6BvROrs6EPjZpwRL93jZHF4iUZYIub8X'
-access_token_secret='C9rqY1ieHOaqQgg1G7jANh8kwnk12QVu25IqfbthNhoBM'
+consumer_key='dJSfZB5YgplrNkNU5zcvRMclC'
+consumer_secret='I8oXO61516cshtXIvCMXSLVGO38AZJuj1Xxm96lWPwj3qGtAcJ'
+access_token = '1177881836-AXnnXtfc43GUR2DmlSmBUnXEwcxq3njXQ2TfZmQ'
+access_token_secret='fr0BgeDzvsEOBQZp41vy7cgjP0BXTtI3q1sTqNlY1ZIp8'
 s = ''
 
 api = tw.Api(consumer_key=consumer_key,
@@ -130,72 +131,96 @@ def commence():
     indexList = [index['cursorIndex'] for index in indexList]
     # pprint(session['userSelected'])
 
-    i = 100
-    while(i>=0):
-        rand = randint(0, len(artistID)-1)
-        twitterRand = randint(0, len(twitterIDs)-1)
-        currentIndex = indexList[rand]
-        print(type(currentIndex))
-        print(type(len(followers[rand])))
-        currentIndex = int(currentIndex)
-        if currentIndex == len(followers[rand]):
-            print('yes')
-            cur.execute('select cursor, screenName from audience where twitterID = %d' % twitterIDs[twitterRand])
-            row = cur.fetchone()
-            cursor = row['cursor']
-            screenName = row['screenName']
-            indexList[rand] = 0
-            currentIndex = 0
-            newFollowers = api.GetFollowersPaged(user_id=twitterIDs[rand], cursor=int(cursor), screen_name=screenName, count=200)
-            filteredFollowers = []
-            # print(newFollowers)
-            for follower in newFollowers[2]:
-                temp = {}
-                temp['id'] = follower.id
-                temp['screen_name'] = follower.screen_name
-                filteredFollowers.append(temp)
-            followers = filteredFollowers
-            filteredFollowers = json.dumps(filteredFollowers)
-            finalSql = "update audience set audienceContent = '%s', cursor='%s', cursorIndex=%d where twitterID= %d"%(filteredFollowers, newFollowers[0], 0, twitterIDs[rand])
-            cur.execute(finalSql)
-            con.commit()
-        else:
-            print('someth')
+    i = 1
+    if i == 2:
+        while(i>=0):
             
-        print(currentIndex)
-        currentFollower = followers[rand][currentIndex]['id']
-        indexList[rand] += 1
+            rand = randint(0, len(artistID)-1)
+            twitterRand = randint(0, len(twitterIDs)-1)
+            currentIndex = indexList[rand]
+            print(type(currentIndex))
+            print(type(len(followers[rand])))
+            currentIndex = int(currentIndex)
+            
+                
+            print(currentIndex)
+            
+            content = session['userSelected']['content']
+            randContent = randint(0, len(content)-1)
+            randMessage = randint(0, len(content[randContent]['messages'])-1)
 
-        content = session['userSelected']['content']
-        randContent = randint(0, len(content)-1)
-        randMessage = randint(0, len(content[randContent]['messages'])-1)
+            chosenContent = content[randContent]
+            chosenMessage = chosenContent['messages'][randMessage]
 
-        chosenContent = content[randContent]
-        chosenMessage = chosenContent['messages'][randMessage]
-        cur.execute('select link from content where cID = %d'% chosenContent['id'])
-        chosenLink = cur.fetchone()['link']
-        cur.execute('update audience set cursorIndex="%s" where twitterID=%d'% (indexList[rand], twitterIDs[rand]))
-        con.commit()
-        result = api.PostDirectMessage(chosenMessage + " " + chosenLink, currentFollower, return_json=True)
-        socketio.emit('success', {'content': chosenContent['name'], 'message':chosenMessage, 'follower':followers[rand][int(currentIndex)]['screen_name']})
-        # print(chosenContent['name'] + ' : ' + chosenMessage + ' : ' + str(i))
-        i -= 1
+            cur.execute('select link from content where cID = %d'% chosenContent['id'])
 
-    # result = api.CheckRateLimit('https://api.twitter.com/1.1/statuses/update.json')
+            chosenLink = cur.fetchone()['link']
+            
+            post = ''
+            post += chosenMessage + '\n' + chosenLink + '\n'
 
+            followersPerPost = 0
+            while(len(post) < 250):
+                currentIndex = indexList[rand]
+                currentIndex = int(currentIndex)
+
+                if currentIndex == len(followers[rand]):
+                    print('yes')
+                    cur.execute('select cursor, screenName from audience where twitterID = %d' % twitterIDs[twitterRand])
+                    row = cur.fetchone()
+                    cursor = row['cursor']
+                    screenName = row['screenName']
+                    indexList[rand] = 0
+                    currentIndex = 0
+                    newFollowers = api.GetFollowersPaged(user_id=twitterIDs[rand], cursor=int(cursor), screen_name=screenName, count=200)
+                    filteredFollowers = []
+                    # print(newFollowers)
+                    for follower in newFollowers[2]:
+                        temp = {}
+                        temp['id'] = follower.id
+                        temp['screen_name'] = follower.screen_name
+                        filteredFollowers.append(temp)
+                    followers = filteredFollowers
+                    filteredFollowers = json.dumps(filteredFollowers)
+                    finalSql = "update audience set audienceContent = '%s', cursor='%s', cursorIndex=%d where twitterID= %d"%(filteredFollowers, newFollowers[0], 0, twitterIDs[rand])
+                    cur.execute(finalSql)
+                    con.commit()
+                else:
+                    print('someth')
+
+                currentFollower = followers[rand][currentIndex]['screen_name']
+                temp = post + ' @' + currentFollower + ' '
+                if len(temp) > 250:
+                    break; 
+                post += ' @' + currentFollower + ' ' 
+                followersPerPost += 1
+                indexList[rand] += 1
+
+
+
+            cur.execute('update audience set cursorIndex="%s" where twitterID=%d'% (indexList[rand], twitterIDs[rand]))
+            con.commit()
+            result = api.PostUpdates(status=post)
+            socketio.emit('success', {'content': chosenContent['name'], 'message':chosenMessage, 'follower':followersPerPost})
+            # print(chosenContent['name'] + ' : ' + chosenMessage + ' : ' + str(i))
+            time.sleep(36)
 
     con.close() 
     return 'invasion complete'
 
+
 @app.route('/tweettest')
 def tweetTest():
+    sample = "something \r\n\r\n\r\n\r\n\r\n\r\n nothing"
+    print(sample)
+    result = api.PostUpdates(status=sample)
     # # result = api.PostUpdates(status='tweet Successful!')
     # result = api.CheckRateLimit('https://api.twitter.com/1.1/direct_messages/events/new.json')
     # print(result)
     # return 'something'
     # result = api.PostDirectMessage('something', '1165838593807376384', return_json=True)
     # print(len('fdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfdfdsasdfd'))
-    pprint(session['userSelected'])
+    # pprint(result)
 
     return '<div>success</div>'
 
